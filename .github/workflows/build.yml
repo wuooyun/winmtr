@@ -1,0 +1,58 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ main, master ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Rust
+      uses: dtolnay/rust-action@stable
+      with:
+        toolchain: stable
+    
+    - name: Build
+      run: cargo build --release
+    
+    - name: Run Clippy
+      run: cargo clippy -- -D warnings
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: mtr-windows
+        path: target/release/mtr.exe
+
+  release:
+    needs: build
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Rust
+      uses: dtolnay/rust-action@stable
+    
+    - name: Build Release
+      run: cargo build --release
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: target/release/mtr.exe
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

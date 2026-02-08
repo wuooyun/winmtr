@@ -1,0 +1,23 @@
+[package]
+name = "mtr"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name"]
+description = "Windows console MTR tool - traceroute and ping combined, no admin required"
+license = "MIT"
+repository = "https://github.com/yourusername/mtr"
+keywords = ["mtr", "traceroute", "ping", "network", "windows"]
+categories = ["command-line-utilities", "network-programming"]
+
+[dependencies]
+winping = "0.10"
+clap = { version = "4", features = ["derive"] }
+dns-lookup = "2"
+ctrlc = "3"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
