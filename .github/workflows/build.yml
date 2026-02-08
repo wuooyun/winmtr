@@ -20,37 +20,38 @@ jobs:
     
     - name: Setup Rust
       uses: dtolnay/rust-toolchain@stable
-    
-    - name: Build
-      run: cargo build --release
+      with:
+        components: clippy
     
     - name: Run Clippy
       run: cargo clippy -- -D warnings
     
+    - name: Build Release
+      run: cargo build --release
+    
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: mtr-windows
+        name: mtr-windows-x64
         path: target/release/mtr.exe
 
   release:
     needs: build
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
     
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup Rust
-      uses: dtolnay/rust-toolchain@stable
-    
-    - name: Build Release
-      run: cargo build --release
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: mtr-windows-x64
     
     - name: Create Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
-        files: target/release/mtr.exe
+        files: mtr.exe
         generate_release_notes: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        draft: false
+        prerelease: false
