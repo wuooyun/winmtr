@@ -192,7 +192,7 @@ fn refresh_display(target: &str, target_ip: IpAddr, hops: &[HopStats], display_c
     }
     println!("mtr to {} ({})", target, target_ip);
     println!("{:>3} {:<45} {:>6} {:>5} {:>6} {:>6} {:>6} {:>6} {:>6}", "", "Host", "Loss%", "Snt", "Last", "Avg", "Best", "Wrst", "StDev");
-    for i in 0..display_count { println!("{}", format_hop(&hops[i], no_dns)); }
+    for hop in hops.iter().take(display_count) { println!("{}", format_hop(hop, no_dns)); }
     io::stdout().flush().unwrap();
 }
 
@@ -236,7 +236,6 @@ fn main() {
         results.sort_by_key(|(ttl, _)| *ttl);
 
         // Process results
-        let mut found_target = false;
         {
             let mut hops = hops.lock().unwrap();
             let mut target_ttl = target_ttl.lock().unwrap();
@@ -250,7 +249,6 @@ fn main() {
                         if !args.no_dns && hops[hop_idx].hostname.is_none() {
                             hops[hop_idx].hostname = reverse_lookup(ip);
                         }
-                        found_target = true;
                     }
                     ProbeResult::TtlExpired { ip, rtt } => {
                         hops[hop_idx].record_response(ip, rtt);
